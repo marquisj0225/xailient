@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>AWS Cognito Secure Page</title>
+</head>
+<body>
+<h1>This is a secure page</h1>
+<button onclick="logout()">Logout</button>
+</body>
+<script src="https://sdk.amazonaws.com/js/aws-sdk-2.283.1.min.js"></script>
+<script src="/amazon-cognito-identity.min.js"></script>
+<script>
+    var poolData = {
+        UserPoolId: 'us-east-1_Bdjyk2zjw',
+        ClientId: '4k9knsf4cdaqgkq306mkm1nfj7'
+    };
+    var userPool = new AmazonCognitoIdentity.CognitoUserPool(poolData);
+    var cognitoUser = userPool.getCurrentUser();
+
+    window.onload = function () {
+        var jwt = window.localStorage.getItem('jwt');
+        if(!jwt){
+            alert('You cannot see this page without login')
+            window.location.href= '/'
+        }
+
+        if (cognitoUser != null) {
+            cognitoUser.getSession(function(err, session) {
+                if (err) {
+                    alert(err);
+                    return;
+                }
+                console.log('session validity: ' + session.isValid());
+            });
+        }
+        else{
+            alert('You cannot see this page without login')
+            window.location.href= '/'
+        }
+
+    };
+
+    function logout() {
+        window.localStorage.removeItem('jwt');
+        cognitoUser.signOut();
+    }
+</script>
+</html>

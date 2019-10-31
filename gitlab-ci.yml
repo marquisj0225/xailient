@@ -1,0 +1,32 @@
+stages:
+- build
+- deploy
+
+build_react:
+image: node:alpine
+stage: build
+
+script:
+- apk update && apk add zip
+- echo "====== Install dependencied ======"
+- npm i
+- echo "====== Build react APP ======"
+- npm run build
+
+artifacts:
+name: panel-build
+paths:
+- build
+
+deploy_react:
+image: cgswong/aws
+stage: deploy
+
+script:
+- echo "====== Configure secret keys ======"
+- echo "[default]\nregion = $AWS_S3_REGION\noutput = json" > ~/.aws/config
+- echo "[default]\naws_access_key_id = $AWS_ACCESS_KEY_ID\naws_secret_access_key = $AWS_SECRET_ACCESS_KEY" > ~/.aws/credentials
+- echo "====== Sync build ======"
+- aws s3 sync ./build $AWS_S3_BUCKET --delete
+only:
+- master
